@@ -42,5 +42,12 @@ stages:
       application: ${CF_APP}
     script: |-
       #!/bin/bash
+      SERVICE_NAME="wcsi-conversation-service"
+      if ! cf services | grep "$SERVICE_NAME"; then
+        cf create-service conversation free "$SERVICE_NAME"
+        cf create-service-key "$SERVICE_NAME" "$SERVICE_NAME"
+        echo "Created new conversation service: $SERVICE_NAME"
+      fi
+
       cf push "${CF_APP}"
       # cf logs "${CF_APP}" --recent
