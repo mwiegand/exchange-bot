@@ -50,8 +50,8 @@ stages:
       #set -x
       #CF_TRACE=true
 
-      if ! cf service ${CONVERSATION_SERVICE_NAME} ; then
-        cf create-service conversation free ${CONVERSATION_SERVICE_NAME}
+      if ! cf service "${CONVERSATION_SERVICE_NAME}" ; then
+        cf create-service conversation free "${CONVERSATION_SERVICE_NAME}"
       fi
       
       cf app $CF_APP
