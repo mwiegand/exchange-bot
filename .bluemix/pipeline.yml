@@ -54,7 +54,7 @@ stages:
         cf create-service conversation free "${CONVERSATION_SERVICE_NAME}"
       fi
       
-      cf app $CF_APP
+      cf push $CF_APP -i ${CF_INSTANCES} -m ${CF_MEMORY}
       
       # View logs
       #cf logs "${CF_APP}" --recent

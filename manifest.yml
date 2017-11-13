@@ -1,17 +1,9 @@
 ---
-declared-services:
-  wcsi-conversation-service:
-    label: conversation
-    plan: free
 applications:
-- name: watson-conversation-slots-intro
-  command: npm start
-  path: .
-  memory: 256M
+- path: .
+  memory: 128M
   instances: 1
-  services:
-  - wcsi-conversation-service
-  env:
-    NPM_CONFIG_PRODUCTION: false
   buildpack: sdk-for-nodejs
-  random-route: true
+  command: npm start
+  services:
+  - Bot Asset Exchange Workspaces
