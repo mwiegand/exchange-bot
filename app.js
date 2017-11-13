@@ -16,8 +16,6 @@
 
 'use strict';
 
-var WatsonConversationSetup = require('./lib/watson-conversation-setup');
-var DEFAULT_NAME = 'watson-conversation-slots-intro';
 var fs = require('fs'); // file system for loading JSON
 var vcapServices = require('vcap_services');
 var conversationCredentials = vcapServices.getCredentials('conversation');
@@ -35,27 +33,24 @@ app.use(express.static('./public')); // load UI from public folder
 app.use(bodyParser.json());
 
 var workspaceID; // workspaceID will be set when the workspace is created or validated.
+var workspaceName = process.env.WORKSPACE_NAME;
 
 // Create the service wrapper
 var conversation = watson.conversation({
-  url: 'https://gateway.watsonplatform.net/conversation/api',
+  url: conversationCredentials.url,
   username: conversationCredentials.username,
   password: conversationCredentials.password,
   version_date: '2016-07-11',
   version: 'v1'
 });
 
-var conversationSetup = new WatsonConversationSetup(conversation);
-var workspaceJson = JSON.parse(fs.readFileSync('data/watson-pizzeria.json'));
-var conversationSetupParams = { default_name: DEFAULT_NAME, workspace_json: workspaceJson };
-conversationSetup.setupConversationWorkspace(conversationSetupParams, (err, data) => {
+conversation.listWorkspaces(function(err, response) {
   if (err) {
-    //handleSetupError(err);
+    console.error(err);
   } else {
-    console.log('Conversation is ready!');
-    workspaceID = data;
+          workspaceID = response.workspaces.find(function(workspace){return workspace.name === workspaceName;}).workspace_id;
   }
-});
+ });
 
 // Endpoint to be call from the client side
 app.post('/api/message', function(req, res) {
