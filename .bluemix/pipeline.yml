@@ -1,46 +1,65 @@
+---
 stages:
-- name: Build Stage
+- name: Build
   inputs:
   - type: git
     branch: master
-    service: ${REPO}
+    service: ${SAMPLE_REPO}
+  triggers:
+  - type: commit
   jobs:
   - name: Build
     type: builder
-    artifact_dir : ''
-  - name: Post Build
-    type: builder
     artifact_dir: ''
-    build_type: shell
-    script: |-
+    build_type: npm
+    script: |
       #!/bin/bash
-      if  [[ -f post_build.sh ]]; then
-        chmod +x post_build.sh;
-        echo "executing the post_build script";
-        sh post_build.sh;
-      else
-        echo "the post_build script does not exist";
-      fi
-- name: Deploy Stage
+      export PATH=/opt/IBM/node-v6.7.0/bin:$PATH
+      npm install
+- name: Deploy
   inputs:
   - type: job
-    stage: Build Stage
+    stage: Build
     job: Build
-  properties:
-  - name: buildProperties
-    value: build.properties
-    type: file
+    dir_name: null
   triggers:
   - type: stage
+  properties:
+  - name: CF_INSTANCES
+    value: '1'
+    type: text
+  - name: CF_MEMORY
+    value: 128M
+    type: text
+  - name: CONVERSATION_SERVICE_NAME
+    value: 'Bot Asset Exchange Workspaces'
+    type: text
+  - name: WORKSPACE_NAME
+    value: 'ThinkFriday Chatbot'
+    type: text
   jobs:
   - name: Deploy
     type: deployer
     target:
-      region_id: ${CF_REGION_ID}
-      organization: ${CF_ORGANIZATION}
-      space: ${CF_SPACE}
-      application: ${CF_APP}
+      region_id: ${PROD_REGION_ID}
+      organization: ${PROD_ORG_NAME}
+      space: ${PROD_SPACE_NAME}
+      application: ${CF_APP_NAME}
     script: |-
       #!/bin/bash
-      cf push "${CF_APP}"
-      # cf logs "${CF_APP}" --recent
+      #set -x
+      #CF_TRACE=true
+
+      if ! cf service ${CONVERSATION_SERVICE_NAME} ; then
+        cf create-service conversation free ${CONVERSATION_SERVICE_NAME}
+      fi
+      
+      cf app $CF_APP
+      
+      # View logs
+      #cf logs "${CF_APP}" --recent
+hooks:
+- enabled: true
+  label: null
+  ssl_enabled: false
+  url: https://devops-api-integration.ng.bluemix.net/v1/messaging/webhook/publish
