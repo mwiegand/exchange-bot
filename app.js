@@ -48,7 +48,10 @@ conversation.listWorkspaces(function(err, response) {
   if (err) {
     console.error(err);
   } else {
-          workspaceID = response.workspaces.find(function(workspace){return workspace.name === workspaceName;}).workspace_id;
+    var workspace = response.workspaces.find(function(workspace){return workspace.name === workspaceName;}) || {};
+    if(workspace.hasOwnProperty('workspace_id')){
+      workspaceID = workspace.workspace_id;
+    }
   }
  });
 
@@ -58,7 +61,7 @@ app.post('/api/message', function(req, res) {
   if (!workspaceID) {
     return res.json({
       output: {
-        text: 'Conversation initialization in progress. Please try again.'
+        text: 'searching for Conversation Workspace. Please try again or set new WORKSPACE_NAME.'
       }
     });
   }

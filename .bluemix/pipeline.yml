@@ -53,9 +53,17 @@ stages:
       if ! cf service "${CONVERSATION_SERVICE_NAME}" ; then
         cf create-service conversation free "${CONVERSATION_SERVICE_NAME}"
       fi
+
+      # uploads app to ibm cloud (without starting the app)
+      cf push $CF_APP -i ${CF_INSTANCES} -m ${CF_MEMORY} --no-start
+
+      # sets vcap and costum-env
+      cf bind-service $CF_APP "${CONVERSATION_SERVICE_NAME}"
+      cf set-env $CF_APP WORKSPACE_NAME "${WORKSPACE_NAME}"
       
-      cf push $CF_APP -i ${CF_INSTANCES} -m ${CF_MEMORY}
-      
+      # start app with environemt
+      cf start $CF_APP
+
       # View logs
       #cf logs "${CF_APP}" --recent
 hooks:
