@@ -61,7 +61,7 @@ app.post('/api/message', function(req, res) {
   if (!workspaceID) {
     return res.json({
       output: {
-        text: 'searching for Conversation Workspace "+workspaceName+". Please try again or set new WORKSPACE_NAME.'
+        text: 'searching for Conversation Workspace "'+workspaceName+'". Please try again or set new WORKSPACE_NAME.'
       }
     });
   }
