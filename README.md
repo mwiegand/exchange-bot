@@ -4,8 +4,7 @@ This is a simple Webapp where you can chat with your Chatbots from ["IBM Code Bo
 If you have multiple Chatbots in your Watson Conversation Service, you can switch them without restarting the server.
 
 all you have to do is:
-
-1. [![Deploy to Bluemix](button.svg)](https://bluemix.net/deploy?repository=https://github.com/mwiegand/exchange-bot)
+1. <a href="https://bluemix.net/deploy?repository=https://github.com/mwiegand/exchange-bot"><img src="./button.svg" alt="Deploy to Bluemix"></a>
 
 1. Get a Bot from ["IBM Code Bot Asset Exchange"](https://developer.ibm.com/code/exchanges/bots)
 
