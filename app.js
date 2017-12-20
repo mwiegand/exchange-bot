@@ -37,31 +37,46 @@ var workspaceName = process.env.WORKSPACE_NAME;
 
 // Create the service wrapper
 var conversation = watson.conversation({
-  url: conversationCredentials.url,
-  username: conversationCredentials.username,
-  password: conversationCredentials.password,
+  url: conversationCredentials.url || process.env.CONVERSATION_URL || 'https://gateway.watsonplatform.net/conversation/api',
+  username: conversationCredentials.username || process.env.CONVERSATION_USERNAME,
+  password: conversationCredentials.password || process.env.CONVERSATION_PASSWORD,
   version_date: '2016-07-11',
   version: 'v1'
 });
 
-conversation.listWorkspaces(function(err, response) {
-  if (err) {
-    console.error(err);
-  } else {
-    var workspace = response.workspaces.find(function(workspace){return workspace.name === workspaceName;}) || {};
-    if(workspace.hasOwnProperty('workspace_id')){
-      workspaceID = workspace.workspace_id;
+// set either an active conversation workspace, workspace-name in the environment-variables or the first workspace in the list
+function set_conv_workspace() {
+  conversation.listWorkspaces(function (err, response) {
+    if (err) {
+      console.error(err);
+    } else {
+      var workspace = response.workspaces.find(function (workspace) {
+        if (workspace.name.toLowerCase().indexOf('active') !== -1) { // find either an active workspace
+          return true
+        } else if (workspaceName) {
+          return workspace.name === workspaceName;                  // find workspace-name in environment-variables
+        }
+      }) || response.workspaces[0] || {};                           // find the first workspace in the list
+      if (workspace.hasOwnProperty('workspace_id')) {
+        if (workspaceID !== workspace.workspace_id) {
+          workspaceID = workspace.workspace_id;                     // set found conversation workspace
+        }
+      }
     }
-  }
- });
+  });
+};
+
+setInterval(function () {
+  set_conv_workspace()
+}, 5000);
 
 // Endpoint to be call from the client side
-app.post('/api/message', function(req, res) {
+app.post('/api/message', function (req, res) {
 
   if (!workspaceID) {
     return res.json({
       output: {
-        text: 'searching for Conversation Workspace. Please try again or set new WORKSPACE_NAME.'
+        text: 'searching for Conversation Workspace. Please make sure there is a Workspace in your Watson Conversation Service.'
       }
     });
   }
@@ -73,7 +88,7 @@ app.post('/api/message', function(req, res) {
   };
 
   // Send the input to the conversation service
-  conversation.message(payload, function(err, data) {
+  conversation.message(payload, function (err, data) {
     if (err) {
       return res.status(err.code || 500).json(err);
     }
