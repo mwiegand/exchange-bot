@@ -93,7 +93,7 @@ app.post('/api/message', function (req, res) {
   if (!workspaceID) {
     return res.json({
       output: {
-        text: 'searching for Conversation Workspace. Please make sure there is a Workspace in your Watson Conversation Service.'
+        text: '...searching for Conversation Workspace. Please make sure there is a Workspace in your Watson Conversation Service.'
       }
     });
   }
