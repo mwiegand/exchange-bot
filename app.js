@@ -49,6 +49,8 @@ function set_conv_workspace() {
   conversation.listWorkspaces(function (err, response) {
     if (err) {
       console.error(err);
+    } else if (response.workspaces && response.workspaces.length === 0){
+      uploadFirstChatbot();                                           // upload default chatbot if workspaces list is empty
     } else {
       var workspace = response.workspaces.find(function (workspace) {
         if (workspace.name.toLowerCase().indexOf('active') !== -1) { // find either an active workspace
@@ -56,7 +58,7 @@ function set_conv_workspace() {
         } else if (workspaceName) {
           return workspace.name === workspaceName;                  // find workspace-name in environment-variables
         }
-      }) || response.workspaces[0] || {};                           // find the first workspace in the list
+      }) || response.workspaces[0];                                 // find the first workspace in the list
       if (workspace.hasOwnProperty('workspace_id')) {
         if (workspaceID !== workspace.workspace_id) {
           workspaceID = workspace.workspace_id;                     // set found conversation workspace
@@ -66,8 +68,23 @@ function set_conv_workspace() {
   });
 };
 
+function uploadFirstChatbot() {
+  var workspace = JSON.parse(fs.readFileSync('data/your-first-chatbot-workspace.json', 'utf8'));
+  
+  conversation.createWorkspace(workspace, function(err, response) {
+    if (err) {
+      console.error(err);
+    } else {
+      var workspace = JSON.stringify(response, null, 2);
+      console.log('workspace uploaded:');
+      console.log(workspace);
+      workspaceID = workspace.workspace_id;
+    }
+   });
+}
+
 setInterval(function () {
-  set_conv_workspace()
+  set_conv_workspace();
 }, 5000);
 
 // Endpoint to be call from the client side
