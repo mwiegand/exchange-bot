@@ -199,6 +199,19 @@ var ConversationPanel = (function() {
             }]
           }]
         };
+        if (newPayload.hasOwnProperty('output') && newPayload.output.hasOwnProperty('url')) {
+          messageJson.children['0'].children['0'].children.push({
+            'tagName': 'a',
+            'text': newPayload.output.url,
+            'attributes': [{
+              'name': 'href',
+              'value': newPayload.output.url
+            }, {
+              'name': 'target',
+              'value': '_blank'
+            }]
+          });
+        }
         messageArray.push(Common.buildDomElement(messageJson));
       }
     });
