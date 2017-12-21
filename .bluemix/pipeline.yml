@@ -34,9 +34,6 @@ stages:
   - name: CONVERSATION_SERVICE_NAME
     value: 'Bot Asset Exchange Workspaces'
     type: text
-  - name: WORKSPACE_NAME
-    value: 'ThinkFriday Chatbot'
-    type: text
   jobs:
   - name: Deploy
     type: deployer
