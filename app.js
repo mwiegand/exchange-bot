@@ -45,16 +45,17 @@ var conversation = watson.conversation({
 });
 
 // set either an active conversation workspace, workspace-name in the environment-variables or the first workspace in the list
-function set_conv_workspace() {
+function set_conv_workspace(callback) {
   conversation.listWorkspaces(function (err, response) {
     if (err) {
       console.error(err);
     } else if (response.workspaces && response.workspaces.length === 0){
       uploadFirstChatbot();                                           // upload default chatbot if workspaces list is empty
+      callback();
     } else {
       var workspace = response.workspaces.find(function (workspace) {
         if (workspace.name.toLowerCase().indexOf('active') !== -1) { // find either an active workspace
-          return true
+          return true;
         } else if (workspaceName) {
           return workspace.name === workspaceName;                  // find workspace-name in environment-variables
         }
@@ -64,9 +65,10 @@ function set_conv_workspace() {
           workspaceID = workspace.workspace_id;                     // set found conversation workspace
         }
       }
+      callback();
     }
   });
-};
+}
 
 function uploadFirstChatbot() {
   var workspace = JSON.parse(fs.readFileSync('data/your-first-chatbot-workspace.json', 'utf8'));
@@ -83,9 +85,17 @@ function uploadFirstChatbot() {
    });
 }
 
-setInterval(function () {
-  set_conv_workspace();
-}, 5000);
+set_conv_workspace(function(){
+  console.log('##################################');
+  console.log('#   conversation workspace set   #');
+  console.log('##################################');
+});
+
+app.use('/', function (req, res, next) {
+  // console.log(req);
+  console.log('blub');
+  set_conv_workspace(next);
+});
 
 // Endpoint to be call from the client side
 app.post('/api/message', function (req, res) {
@@ -93,7 +103,7 @@ app.post('/api/message', function (req, res) {
   if (!workspaceID) {
     return res.json({
       output: {
-        text: '...searching for Conversation Workspace. Please make sure there is a Workspace in your Watson Conversation Service.'
+        text: '...searching for Conversation Workspace. If there is no Workspace I\'m uploading your first Workpace in your Conversation Service. Please reload the Page.'
       }
     });
   }
@@ -107,7 +117,11 @@ app.post('/api/message', function (req, res) {
   // Send the input to the conversation service
   conversation.message(payload, function (err, data) {
     if (err) {
-      return res.status(err.code || 500).json(err);
+      set_conv_workspace(function(){console.log('resolving error')});
+      return res.json({
+        output: {
+          text: '...searching for Conversation Workspace. If there is no Workspace I\'m uploading your first Workpace in your Conversation Service. Please reload the Page.'
+        }});
     }
     return res.json(updateMessage(payload, data));
   });
